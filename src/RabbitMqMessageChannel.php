@@ -5,6 +5,7 @@ namespace Lukasz93P\AsyncMessageChannel;
 
 
 use ErrorException;
+use Lukasz93P\AsyncMessageChannel\exceptions\MessageConstantlyUnprocessable;
 use Lukasz93P\AsyncMessageChannel\exceptions\MessagePublishingFailed;
 use Lukasz93P\AsyncMessageChannel\exceptions\MultipleMessagesPublishingFailed;
 use Lukasz93P\AsyncMessageChannel\exceptions\OneMessagePublishingFailed;
@@ -136,6 +137,11 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
                 try {
                     $messageHandler->handle(BasicMessage::processable($message->getBody()));
                     $this->notifyChannelAboutSuccessfulMessageProcessing($message);
+                } catch (MessageConstantlyUnprocessable $messageConstantlyUnprocessable) {
+                    $this->logger->error(
+                        ProcessingOfAsynchronousMessageFailed::fromMessageBodyAndReason($message->getBody(), $messageConstantlyUnprocessable)->getMessage()
+                    );
+                    $this->notifyChannelAboutSuccessfulMessageProcessing($message);
                 } catch (Throwable $throwable) {
                     $this->logger->critical(
                         ProcessingOfAsynchronousMessageFailed::fromMessageBodyAndReason($message->getBody(), $throwable)->getMessage()
@@ -157,7 +163,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
 
     private function notifyChannelAboutFailureDuringMessageProcessing(AMQPMessage $message): void
     {
-        $this->getChannelOfDeliveredMessage($message)->basic_nack($this->getDeliveryTagOfDeliveredMessage($message), false, true);
+        $this->getChannelOfDeliveredMessage($message)->basic_reject($this->getDeliveryTagOfDeliveredMessage($message), false);
     }
 
     private function getChannelOfDeliveredMessage(AMQPMessage $message): AMQPChannel
