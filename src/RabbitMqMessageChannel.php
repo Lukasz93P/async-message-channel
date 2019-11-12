@@ -134,7 +134,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
             false,
             function (AMQPMessage $message) use ($messageHandler) {
                 try {
-                    $messageHandler->handle(BasicMessage::fromBody($message->getBody()));
+                    $messageHandler->handle(BasicMessage::processable($message->getBody()));
                     $this->notifyChannelAboutSuccessfulMessageProcessing($message);
                 } catch (Throwable $throwable) {
                     $this->logger->critical(

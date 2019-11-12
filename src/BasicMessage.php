@@ -16,12 +16,12 @@ class BasicMessage implements PublishableMessage
      */
     private $body;
 
-    public static function fromBody(string $body): ProcessableMessage
+    public static function processable(string $body): ProcessableMessage
     {
         return new self('', $body);
     }
 
-    public static function fromRoutingKeyAndBody(string $id, string $body): PublishableMessage
+    public static function publishable(string $id, string $body): PublishableMessage
     {
         return new self($id, $body);
     }
