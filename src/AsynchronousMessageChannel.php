@@ -11,7 +11,7 @@ use Psr\Log\LoggerAwareInterface;
 interface AsynchronousMessageChannel extends LoggerAwareInterface
 {
     /**
-     * @param Message[] $messages
+     * @param PublishableMessage[] $messages
      * @throws MessagePublishingFailed
      */
     public function add(array $messages): void;

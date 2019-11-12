@@ -16,10 +16,8 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class RabbitMqMessageFanoutChannel implements AsynchronousMessageChannel
+class RabbitMqMessageChannel implements AsynchronousMessageChannel
 {
-    private const RABBIT_MQ_MESSAGE_ID_PROPERTY_KEY = 'message_id';
-
     /**
      * @var string
      */
@@ -82,7 +80,7 @@ class RabbitMqMessageFanoutChannel implements AsynchronousMessageChannel
     }
 
     /**
-     * @param Message[] $messages
+     * @param PublishableMessage[] $messages
      * @throws MessagePublishingFailed
      */
     public function add(array $messages): void
@@ -99,23 +97,23 @@ class RabbitMqMessageFanoutChannel implements AsynchronousMessageChannel
     }
 
     /**
-     * @param Message[] $messages
+     * @param PublishableMessage[] $messages
      */
     private function publish(array $messages): void
     {
         $this->channel->confirm_select();
         foreach ($messages as $message) {
-            $this->channel->batch_basic_publish($this->toAMQPMessage($message), $this->exchangeName, '', true);
+            $this->channel->batch_basic_publish($this->toAMQPMessage($message), $this->exchangeName, $message->routingKey(), true);
         }
         $this->channel->publish_batch();
         $this->channel->wait_for_pending_acks();
     }
 
-    private function toAMQPMessage(Message $message): AMQPMessage
+    private function toAMQPMessage(PublishableMessage $message): AMQPMessage
     {
         return new AMQPMessage(
             $message->body(),
-            ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT, self::RABBIT_MQ_MESSAGE_ID_PROPERTY_KEY => $message->id()]
+            ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
         );
     }
 
@@ -136,7 +134,7 @@ class RabbitMqMessageFanoutChannel implements AsynchronousMessageChannel
             false,
             function (AMQPMessage $message) use ($messageHandler) {
                 try {
-                    $messageHandler->handle(BasicMessage::fromIdAndBody($message->get(self::RABBIT_MQ_MESSAGE_ID_PROPERTY_KEY), $message->getBody()));
+                    $messageHandler->handle(BasicMessage::fromBody($message->getBody()));
                     $this->notifyChannelAboutSuccessfulMessageProcessing($message);
                 } catch (Throwable $throwable) {
                     $this->logger->critical(

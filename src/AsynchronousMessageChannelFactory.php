@@ -14,7 +14,7 @@ final class AsynchronousMessageChannelFactory
 
     public static function withLogger(LoggerInterface $logger): AsynchronousMessageChannel
     {
-        return RabbitMqMessageFanoutChannel::withLogger($logger);
+        return RabbitMqMessageChannel::withLogger($logger);
     }
 
 }

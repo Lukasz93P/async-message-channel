@@ -9,8 +9,8 @@ use Throwable;
 interface MessageHandler
 {
     /**
-     * @param Message $message
+     * @param ProcessableMessage $message
      * @throws Throwable
      */
-    public function handle(Message $message): void;
+    public function handle(ProcessableMessage $message): void;
 }

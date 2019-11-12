@@ -4,9 +4,7 @@
 namespace Lukasz93P\AsyncMessageChannel;
 
 
-interface Message
+interface ProcessableMessage
 {
-    public function id(): string;
-
     public function body(): string;
 }
