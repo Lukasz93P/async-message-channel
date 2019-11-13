@@ -138,15 +138,11 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
                     $messageHandler->handle(BasicMessage::processable($message->getBody()));
                     $this->notifyChannelAboutSuccessfulMessageProcessing($message);
                 } catch (MessageConstantlyUnprocessable $messageConstantlyUnprocessable) {
-                    $this->logger->error(
-                        ProcessingOfAsynchronousMessageFailed::fromMessageBodyAndReason($message->getBody(), $messageConstantlyUnprocessable)->getMessage()
-                    );
+                    $this->logInformationAboutMessageProcessingFailure($message, $messageConstantlyUnprocessable);
                     $this->notifyChannelAboutSuccessfulMessageProcessing($message);
                 } catch (Throwable $throwable) {
-                    $this->logger->critical(
-                        ProcessingOfAsynchronousMessageFailed::fromMessageBodyAndReason($message->getBody(), $throwable)->getMessage()
-                    );
-                    $this->notifyChannelAboutFailureDuringMessageProcessing($message);
+                    $this->logInformationAboutMessageProcessingFailure($message, $throwable);
+                    $this->rejectTemporaryUnprocessableMessage($message);
                 }
             }
         );
@@ -161,9 +157,14 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
         $this->getChannelOfDeliveredMessage($message)->basic_ack($this->getDeliveryTagOfDeliveredMessage($message));
     }
 
-    private function notifyChannelAboutFailureDuringMessageProcessing(AMQPMessage $message): void
+    private function rejectTemporaryUnprocessableMessage(AMQPMessage $message): void
     {
         $this->getChannelOfDeliveredMessage($message)->basic_reject($this->getDeliveryTagOfDeliveredMessage($message), false);
+    }
+
+    private function logInformationAboutMessageProcessingFailure(AMQPMessage $message, Throwable $reason): void
+    {
+        $this->logger->error(ProcessingOfAsynchronousMessageFailed::fromMessageBodyAndReason($message->getBody(), $reason)->getMessage());
     }
 
     private function getChannelOfDeliveredMessage(AMQPMessage $message): AMQPChannel
