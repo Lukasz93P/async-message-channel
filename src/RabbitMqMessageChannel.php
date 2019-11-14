@@ -11,7 +11,6 @@ use Lukasz93P\AsyncMessageChannel\exceptions\MultipleMessagesPublishingFailed;
 use Lukasz93P\AsyncMessageChannel\exceptions\OneMessagePublishingFailed;
 use Lukasz93P\AsyncMessageChannel\exceptions\ProcessingOfAsynchronousMessageFailed;
 use PhpAmqpLib\Channel\AMQPChannel;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
@@ -19,11 +18,6 @@ use Throwable;
 
 class RabbitMqMessageChannel implements AsynchronousMessageChannel
 {
-    /**
-     * @var string
-     */
-    private $exchangeName;
-
     /**
      * @var AMQPChannel
      */
@@ -34,41 +28,21 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
      */
     private $logger;
 
-    public static function withLogger(LoggerInterface $logger): self
+    public static function withLoggerAndChannel(LoggerInterface $logger, AMQPChannel $channel): self
     {
-        return new self($logger);
+        return new self($logger, $channel);
     }
 
-    private function __construct(LoggerInterface $logger)
+    private function __construct(LoggerInterface $logger, AMQPChannel $channel)
     {
         $this->logger = $logger;
-        $this->exchangeName = getenv('RABBIT_MQ_EXCHANGE_NAME') ?: 'my_fanout';
+        $this->channel = $channel;
+        $this->setHandlerForFailureMassagePublication();
     }
 
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
-    }
-
-    private function setUp(): void
-    {
-        static $isSetUp = false;
-        if ($isSetUp) {
-            return;
-        }
-        $this->createChannel();
-        $this->setHandlerForFailureMassagePublication();
-        $isSetUp = true;
-    }
-
-    private function createChannel(): void
-    {
-        $this->channel = (new AMQPStreamConnection(
-            getenv('RABBIT_MQ_HOST') ?: 'localhost',
-            getenv('RABBIT_MQ_PORT') ?: 5672,
-            getenv('RABBIT_MQ_USER') ?: 'guest',
-            getenv('RABBIT_MQ_PASSWORD') ?: 'guest'
-        ))->channel();
     }
 
     private function setHandlerForFailureMassagePublication(): void
@@ -89,7 +63,6 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
         if (empty($messages)) {
             return;
         }
-        $this->setUp();
         try {
             $this->publish($messages);
         } catch (AMQPTimeoutException $AMQPTimeoutException) {
@@ -104,7 +77,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
     {
         $this->channel->confirm_select();
         foreach ($messages as $message) {
-            $this->channel->batch_basic_publish($this->toAMQPMessage($message), $this->exchangeName, $message->routingKey(), true);
+            $this->channel->batch_basic_publish($this->toAMQPMessage($message), $message->exchange(), $message->routingKey(), true);
         }
         $this->channel->publish_batch();
         $this->channel->wait_for_pending_acks();
@@ -125,7 +98,6 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
      */
     public function startProcessingQueue(MessageHandler $messageHandler, string $queueName): void
     {
-        $this->setUp();
         $this->channel->basic_consume(
             $queueName,
             false,

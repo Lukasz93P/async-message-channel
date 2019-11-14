@@ -14,27 +14,38 @@ class BasicMessage implements PublishableMessage
     /**
      * @var string
      */
+    private $exchange;
+
+    /**
+     * @var string
+     */
     private $body;
 
     public static function processable(string $body): ProcessableMessage
     {
-        return new self('', $body);
+        return new self('', '', $body);
     }
 
-    public static function publishable(string $id, string $body): PublishableMessage
+    public static function publishable(string $routingKey, string $exchange, string $body): PublishableMessage
     {
-        return new self($id, $body);
+        return new self($routingKey, $exchange, $body);
     }
 
-    private function __construct(string $routingKey, string $body)
+    protected function __construct(string $routingKey, string $exchange, string $body)
     {
         $this->routingKey = $routingKey;
+        $this->exchange = $exchange;
         $this->body = $body;
     }
 
     public function routingKey(): string
     {
         return $this->routingKey;
+    }
+
+    public function exchange(): string
+    {
+        return $this->exchange;
     }
 
     public function body(): string
