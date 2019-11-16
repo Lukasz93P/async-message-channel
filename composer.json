@@ -1,12 +1,22 @@
 {
     "name": "lukasz93p/async-message-channel",
     "description": "Package which allow to add and then process asynchronous messages. Currently based on RabbitMQ.",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
             "name": "Lukasz93P",
             "email": "lukasz9.3@interia.pl"
         }
+    ],
+    "keywords": [
+        "rabbitMQ",
+        "asynchronous",
+        "async",
+        "messaging",
+        "events",
+        "message processing",
+        "message broker"
     ],
     "autoload": {
         "psr-4": {
@@ -19,5 +29,6 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^8.4"
-    }
+    },
+    "minimum-stability": "stable"
 }

@@ -29,10 +29,10 @@ final class AsynchronousMessageChannelFactory
     private static function initializeChannel(): void
     {
         self::$channel = self::$channel ?? (new AMQPStreamConnection(
-                getenv('RABBIT_MQ_HOST') ?: 'localhost',
-                getenv('RABBIT_MQ_PORT') ?: 5672,
-                getenv('RABBIT_MQ_USER') ?: 'guest',
-                getenv('RABBIT_MQ_PASSWORD') ?: 'guest'
+                getenv('MQ_BROKER_HOST') ?: 'localhost',
+                getenv('MQ_BROKER_PORT') ?: 5672,
+                getenv('MQ_BROKER_USER') ?: 'guest',
+                getenv('MQ_BROKER_PASSWORD') ?: 'guest'
             ))->channel();
     }
 
