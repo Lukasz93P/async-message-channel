@@ -12,7 +12,7 @@ exception is thrown.
 
 ### Publishing
 
-##### 1 Add env configuration:
+#### 1 Add env configuration:
 ```.dotenv
 MQ_BROKER_HOST={rabbit host}
 MQ_BROKER_PORT={rabbit port}
@@ -20,14 +20,14 @@ MQ_BROKER_USER={rabbit user}
 MQ_BROKER_PASSWORD={rabbit password}
 ```
 
-##### 2 Create instance of ```AsynchronousMessageChannel```:
+#### 2 Create instance of ```AsynchronousMessageChannel```:
 ```php
 $asynchronousMessageChannel = AsynchronousMessageChannelFactory::withLogger($implementationOfPsrLoggerInterface);
 ```
 Logger is instance of class implementing ```Psr\Log\LoggerInterface```, it will be used to log error which 
 can occur during message processing.
 
-##### 3 Publish message:
+#### 3 Publish message:
 Message have to be instance of class implementing ```PublishableMessage```. Currently implementation is aligned 
 with RabbitMQ requirements so ```PublishableMessage``` defines three methods:
 - ```body``` - returns body of a message as string
@@ -45,7 +45,7 @@ If it receives information about publishing failure from RabbitMQ ```MessagePubl
 
 ### Processing
 
-##### 1 Create ```MessageHandler```:
+#### 1 Create ```MessageHandler```:
 For messages processing implementation of ```MessageHandler``` is needed, this interface defines only one method:
 ```php
 interface MessageHandler
@@ -67,7 +67,7 @@ interface ProcessableMessage
 }
 ``` 
 
-##### 2 Decide what to do with processed messages inside ```MessageHandler::handle```:
+#### 2 Decide what to do with processed messages inside ```MessageHandler::handle```:
 Client code can decide what to do with processed message thorough implementation of ```handle``` method :
 - if ```handle``` method method throws any exception/throwable(excluding ```MessageConstantlyUnprocessable```)
 ```AsynchronousMessageChannel``` will ```reject``` message from RabbitMQ. When message is rejected it will be 
@@ -76,7 +76,7 @@ deleted from queue but You can configure RabbitMQ to use ```fallback queue``` fo
 - if ```handle``` throws ```MessageConstantlyUnprocessable``` then ```AsynchronousMessageChannel``` informs RabbitMQ that
 message was processed successfully then RabbitMQ simply deletes the message.
 
-****Summary:****
+#####Summary:
 
 - All exception thrown by ```MessageHandler::handle``` will be logged.
 - If message has been processed successfully ```MessageHandler::handle``` should not throw any exception.
@@ -86,7 +86,7 @@ message was processed successfully then RabbitMQ simply deletes the message.
 exception inside ```MessageHandler::handle```(You can be more explicit and throw ```MessageTemporaryUnprocessable```).
 To receive message again You also have to configure ```fallback queue``` for RabbitMQ.
 
-##### 3 Start processing messages:
+#### 3 Start processing messages:
 To start processing messages You need and instance of ```AsynchronousMessageChannel```:
 ```php
 $asynchronousMessageChannel = AsynchronousMessageChannelFactory::withLogger($implementationOfPsrLoggerInterface);
