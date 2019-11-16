@@ -76,7 +76,7 @@ deleted from queue but You can configure RabbitMQ to use ```fallback queue``` fo
 - if ```handle``` throws ```MessageConstantlyUnprocessable``` then ```AsynchronousMessageChannel``` informs RabbitMQ that
 message was processed successfully then RabbitMQ simply deletes the message.
 
-#####Summary:
+##### Summary:
 
 - All exception thrown by ```MessageHandler::handle``` will be logged.
 - If message has been processed successfully ```MessageHandler::handle``` should not throw any exception.
