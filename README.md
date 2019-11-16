@@ -3,7 +3,7 @@
 ##### Current implementation uses RabbitMQ, so to utilize it You have to install this broker.
 
 ## Why to use this package? ##
-- It abstracts all difficulties associated with asynchronous messages publication and processing.
+- It abstracts all difficulties associated with asynchronous messages publishing and processing.
 - It guarantees reliable publication of messages - in case of failure in publication even one of the messages
 exception is thrown.
 - It helps with passing unsuccessfully processed messages back to queue.
@@ -71,8 +71,8 @@ interface ProcessableMessage
 Client code can decide what to do with processed message thorough implementation of ```handle``` method :
 - if ```handle``` method method throws any exception/throwable(excluding ```MessageConstantlyUnprocessable```)
 ```AsynchronousMessageChannel``` will ```reject``` message from RabbitMQ. When message is rejected it will be 
-deleted from queue but You can configure RabbitMQ to use ```fallback queue``` for that purposes and pass messages from
-```falback queue``` back to "normal" queue with some delay.
+deleted from queue but You can configure RabbitMQ to use ```fallback queue``` for that purposes and instruct broker to pass messages back from
+```fallback queue``` to any other queue(probably the one to which message was originally added) with some delay.
 - if ```handle``` throws ```MessageConstantlyUnprocessable``` then ```AsynchronousMessageChannel``` informs RabbitMQ that
 message was processed successfully then RabbitMQ simply deletes the message.
 
