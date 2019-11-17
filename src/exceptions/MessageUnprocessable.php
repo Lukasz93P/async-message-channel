@@ -16,8 +16,8 @@ abstract class MessageUnprocessable extends MessageChannelException
 
     private function __construct($code = 0, Throwable $previous = null)
     {
-        parent::__construct($this->generateMessage(), $code, $previous);
+        parent::__construct($this->generateMessage($previous), $code, $previous);
     }
 
-    abstract protected function generateMessage(): string;
+    abstract protected function generateMessage(Throwable $reason): string;
 }

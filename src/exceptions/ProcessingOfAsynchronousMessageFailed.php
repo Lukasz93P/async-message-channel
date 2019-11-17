@@ -9,19 +9,14 @@ use Throwable;
 
 class ProcessingOfAsynchronousMessageFailed extends MessageChannelException
 {
-    public static function fromMessageBody(string $messageBody): self
-    {
-        return new self(self::generateExceptionMessage($messageBody));
-    }
-
     public static function fromMessageBodyAndReason(string $messageBody, Throwable $reason): self
     {
-        return new self(self::generateExceptionMessage($messageBody), $reason->getCode(), $reason);
+        return new self(self::generateExceptionMessage($messageBody, $reason), $reason->getCode(), $reason);
     }
 
-    private static function generateExceptionMessage(string $messageBody): string
+    private static function generateExceptionMessage(string $messageBody, Throwable $reason): string
     {
-        return 'Throwable was thrown during processing asynchronous message. Message body:' . PHP_EOL . $messageBody;
+        return 'Throwable was thrown during processing asynchronous message. Message body:' . PHP_EOL . $messageBody . PHP_EOL . "Reason: {$reason->getMessage()}";
     }
 
     private function __construct($message = "", $code = 0, Throwable $previous = null)
