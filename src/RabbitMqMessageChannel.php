@@ -128,7 +128,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
             if ($isTimed && $duration >= $maxRunningTimeInSeconds) {
                 return;
             }
-            $this->channel->wait($maxRunningTimeInSeconds - $duration);
+            $this->channel->wait(null, false,$maxRunningTimeInSeconds - $duration);
         }
     }
 
