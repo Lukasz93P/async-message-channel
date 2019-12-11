@@ -24,7 +24,9 @@ final class AsynchronousMessageChannelFactory
     {
         self::initializeChannel();
 
-        return RabbitMqMessageChannel::withLoggerAndChannel($logger, self::$channel);
+        return MessageChannelWhichNotAllowToRunMoreThanOneProcessOneQueue::decoratorForAsynchronousMessageChannel(
+            RabbitMqMessageChannel::withLoggerAndChannel($logger, self::$channel)
+        );
     }
 
     private static function initializeChannel(): void

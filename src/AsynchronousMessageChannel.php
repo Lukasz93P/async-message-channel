@@ -20,7 +20,8 @@ interface AsynchronousMessageChannel extends LoggerAwareInterface
     /**
      * @param MessageHandler $messageHandler
      * @param string $queueName
+     * @param int $maxRunningTimeInSeconds
      * @throws ErrorException
      */
-    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName): void;
+    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = null): void;
 }

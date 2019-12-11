@@ -49,7 +49,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
     private function setHandlerForFailureMassagePublication(): void
     {
         $this->channel->set_nack_handler(
-            function (AMQPMessage $message) {
+            static function (AMQPMessage $message) {
                 throw OneMessagePublishingFailed::fromMessageBody($message->getBody());
             }
         );
@@ -95,9 +95,10 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
     /**
      * @param MessageHandler $messageHandler
      * @param string $queueName
+     * @param int $maxRunningTimeInSeconds
      * @throws ErrorException
      */
-    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName): void
+    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = null): void
     {
         $this->channel->basic_consume(
             $queueName,
@@ -120,7 +121,12 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
             }
         );
 
+        $isTimed = (bool)$maxRunningTimeInSeconds;
+        $start = microtime(true);
         while ($this->channel->is_consuming()) {
+            if ($isTimed && (microtime(true) - $start) >= $maxRunningTimeInSeconds) {
+                return;
+            }
             $this->channel->wait();
         }
     }
