@@ -156,7 +156,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
 
     private function getDeliveryTagOfDeliveredMessage(AMQPMessage $message): string
     {
-        return $message->delivery_info['delivery_tag'] ?? '';
+        return (string)($message->delivery_info['delivery_tag'] ?? '');
     }
 
 }
