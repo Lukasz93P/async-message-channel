@@ -98,7 +98,7 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
      * @param int $maxRunningTimeInSeconds
      * @throws ErrorException
      */
-    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = null): void
+    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = 0): void
     {
         $this->channel->basic_consume(
             $queueName,
@@ -121,14 +121,12 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
             }
         );
 
-        $isTimed = (bool)$maxRunningTimeInSeconds;
-        $start = microtime(true);
-        while ($this->channel->is_consuming()) {
-            $duration = abs($start - microtime(true));
-            if ($isTimed && $duration >= $maxRunningTimeInSeconds) {
-                return;
+        try {
+            while ($this->channel->is_consuming()) {
+                $this->channel->wait(null, false, $maxRunningTimeInSeconds);
             }
-            $this->channel->wait(null, false,$maxRunningTimeInSeconds - $duration);
+        } catch (AMQPTimeoutException $exception) {
+            return;
         }
     }
 

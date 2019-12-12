@@ -30,7 +30,7 @@ class MessageChannelWhichNotAllowToRunMoreThanOneProcessOneQueue implements Asyn
         $this->decoratedAsynchronousMessageChannel->add($messages);
     }
 
-    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = null): void
+    public function startProcessingQueue(MessageHandler $messageHandler, string $queueName, int $maxRunningTimeInSeconds = 0): void
     {
         $filePath = $this->generateFilePath($queueName);
         if (file_exists($filePath)) {
