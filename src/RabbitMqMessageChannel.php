@@ -122,8 +122,11 @@ class RabbitMqMessageChannel implements AsynchronousMessageChannel
         );
 
         try {
+            $start = microtime(true);
             while ($this->channel->is_consuming()) {
-                $this->channel->wait(null, false, $maxRunningTimeInSeconds);
+                $duration = microtime(true) - $start;
+                $channelWaitingTimeout = ($maxRunningTimeInSeconds - $duration) ?: -1;
+                $this->channel->wait(null, false, $maxRunningTimeInSeconds ? $channelWaitingTimeout : 0);
             }
         } catch (AMQPTimeoutException $exception) {
             return;
